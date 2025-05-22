@@ -20,9 +20,7 @@
       "redis": "redis.js"
     }
   },
-  "author": {
-    "name": "Andre Alexandre Avila, Aleksei Breshin"
-  },
+  "author": "Andre Alexandre Avila, Aleksei Breshin",
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/breshinas/node-red-contrib-redis/issues"
