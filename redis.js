@@ -6,26 +6,50 @@ module.exports = function (RED) {
   let usedConn = {};
 
 function RedisConfig(n) {
-    RED.nodes.createNode(this, n);
+    console.log('test', n);
+	RED.nodes.createNode(this, n);
     this.name = n.name;
-    this.cluster = n.cluster;
-    if (this.optionsType === "") {
-      this.options = n.options;
+
+    // Default cluster flag from the UI config
+    this.cluster = (n.cluster === true || n.cluster === "true");
+
+    const self = this;
+
+    if (n.optionsType === "") {
+      self.options = n.options;
     } else {
-      RED.util.evaluateNodeProperty(n.options, n.optionsType,this,undefined,(err,value) => {
-          if(!err) {
-            // Check if value is a string and optionsType is "env"
-            if (typeof value === 'string' && n.optionsType === "env") {
-                try {
-                    this.options = JSON.parse(value); // Attempt to parse JSON
-                } catch (e) {
-                    console.warn("Failed to parse env as JSON string in redis-config node, use plain value:", e);
-                    this.options = value;  // Keep the value as is if it's not valid JSON
-                }
-            } else {
-                this.options = value;
+      RED.util.evaluateNodeProperty(n.options, n.optionsType, self, undefined, (err, value) => {
+        if (!err) {
+          try {
+            let parsedValue = value;
+			
+
+            // Try to parse string from ENV as JSON
+            if (typeof value === "string" && n.optionsType === "env") {
+              try {
+                parsedValue = JSON.parse(value);
+              } catch (exc) {
+				self.error("Error processing options", exc);
+                self.warn(`redis-config: Failed to parse environment variable as JSON. Using raw string value: "${value}"`);
+              }
             }
+
+            // If the parsed value is an object, check for `cluster` flag
+            if (typeof parsedValue === "object" && parsedValue !== null) {
+              if (parsedValue.hasOwnProperty("cluster")) {
+                self.cluster = Boolean(parsedValue.cluster);
+              }
+            }
+
+            self.options = parsedValue;
+          } catch (e) {
+            self.error("redis-config: Error processing options", e);
+            self.options = {};
           }
+        } else {
+          self.error("redis-config: Error evaluating options", err);
+          self.options = {};
+        }
       });
     }
   }

@@ -49,6 +49,51 @@
     </div>
 </script>
 
+<script type="text/markdown" data-help-name="mongodb4-client">
+
+Configuration node for Redis connection config.
+Node will create a Redis Client.
+
+Example config `{"port":6379,"host":"localhost","username":"default","password":"","db":0}`
+
+Config for cluster (yep, it will overwrite cluster flag)
+```json
+{
+  "cluster": true,
+  "nodes": [
+    { "host": "10.0.0.1", "port": 7000 },
+    { "host": "10.0.0.2", "port": 7001 },
+    { "host": "10.0.0.3", "port": 7002 }
+  ],
+  "redisOptions": {
+    "password": "secret",
+    "scaleReads": "slave"
+  }
+}
+```
+
+### Passing config using environment
+
+You can define your environment config using bash:
+```bash
+export REDIS_CONFIG='{
+  "cluster": true,
+  "nodes": [
+    { "host": "10.0.0.1", "port": 7000 },
+    { "host": "10.0.0.2", "port": 7001 },
+    { "host": "10.0.0.3", "port": 7002 }
+  ],
+  "redisOptions": {
+    "password": "secret",
+    "scaleReads": "slave"
+  }
+}'
+```
+
+and then select `env` type and put `REDIS_CONFIG` into input.
+
+</script>
+
 <script type="text/javascript">
     /*global RED*/
     RED.nodes.registerType('redis-in', {

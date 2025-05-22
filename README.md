@@ -1,5 +1,8 @@
-# node-red-contrib-redis
+# node-red-redis
 Node Red client for Redis with pub/sub, list, lua scripting, ssl, cluster, custom commands, instance injection and other commands support.
+
+This is a fork from the excellent node-red-contrib-redis with a small patch to make it compliant with the redis cluster (originally i want to share config between my local instance and cluster version)
+It is available on NPM as @breshinas/node-red-redis
 
 Connection Options parameter receives IORedis object or string (https://github.com/luin/ioredis#connect-to-redis).
 
@@ -15,8 +18,47 @@ See the Sample flow before ask how this module works.
 
 Please test and make feedback.
 
-I need contributors...
 
+Configuration node for Redis connection config.
+Node will create a Redis Client.
+
+Example config `{"port":6379,"host":"localhost","username":"default","password":"","db":0}`
+
+Config for cluster (yep, it will overwrite cluster flag)
+```json
+{
+  "cluster": true,
+  "nodes": [
+    { "host": "10.0.0.1", "port": 7000 },
+    { "host": "10.0.0.2", "port": 7001 },
+    { "host": "10.0.0.3", "port": 7002 }
+  ],
+  "redisOptions": {
+    "password": "secret",
+    "scaleReads": "slave"
+  }
+}
+```
+
+### Passing config using environment
+
+You can define your environment config using bash:
+```bash
+export REDIS_CONFIG='{
+  "cluster": true,
+  "nodes": [
+    { "host": "10.0.0.1", "port": 7000 },
+    { "host": "10.0.0.2", "port": 7001 },
+    { "host": "10.0.0.3", "port": 7002 }
+  ],
+  "redisOptions": {
+    "password": "secret",
+    "scaleReads": "slave"
+  }
+}'
+```
+
+and then select `env` type and put `REDIS_CONFIG` into input.
 
 
 Redis Commands:
