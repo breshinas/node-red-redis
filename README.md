@@ -18,6 +18,7 @@ See the Sample flow before ask how this module works.
 
 Please test and make feedback.
 
+## The config node
 
 Configuration node for Redis connection config.
 Node will create a Redis Client.
@@ -60,6 +61,7 @@ export REDIS_CONFIG='{
 
 and then select `env` type and put `REDIS_CONFIG` into input.
 
+## The flow node
 
 Redis Commands:
 

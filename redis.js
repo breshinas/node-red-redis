@@ -5,9 +5,8 @@ module.exports = function (RED) {
   let connections = {};
   let usedConn = {};
 
-function RedisConfig(n) {
-    console.log('test', n);
-	RED.nodes.createNode(this, n);
+  function RedisConfig(n) {
+    RED.nodes.createNode(this, n);
     this.name = n.name;
 
     // Default cluster flag from the UI config
@@ -22,15 +21,19 @@ function RedisConfig(n) {
         if (!err) {
           try {
             let parsedValue = value;
-			
 
-            // Try to parse string from ENV as JSON
+            // Only try to parse non-empty strings from ENV as JSON
             if (typeof value === "string" && n.optionsType === "env") {
-              try {
-                parsedValue = JSON.parse(value);
-              } catch (exc) {
-				self.error("Error processing options", exc);
-                self.warn(`redis-config: Failed to parse environment variable as JSON. Using raw string value: "${value}"`);
+              const trimmed = value.trim();
+              if (trimmed.length > 0) {
+                try {
+                  parsedValue = JSON.parse(trimmed);
+                } catch (e) {
+                  self.warn("redis-config: Failed to parse environment variable as JSON. Using raw string value.");
+                }
+              } else {
+                self.warn("redis-config: Environment variable is an empty string.");
+                parsedValue = {};
               }
             }
 
@@ -79,9 +82,9 @@ function RedisConfig(n) {
       client.on("pmessage", function (pattern, channel, message) {
         var payload = null;
         try {
-          if(node.obj){
+          if (node.obj) {
             payload = JSON.parse(message);
-          }else{
+          } else {
             payload = message;
           }
         } catch (err) {
@@ -105,9 +108,9 @@ function RedisConfig(n) {
       client.on("message", function (channel, message) {
         var payload = null;
         try {
-          if(node.obj){
+          if (node.obj) {
             payload = JSON.parse(message);
-          }else{
+          } else {
             payload = message;
           }
         } catch (err) {
@@ -137,9 +140,9 @@ function RedisConfig(n) {
               if (data !== null && data.length == 2) {
                 var payload = null;
                 try {
-                  if(node.obj){
+                  if (node.obj) {
                     payload = JSON.parse(data[1]);
-                  }else{
+                  } else {
                     payload = data[1];
                   }
                 } catch (err) {
@@ -158,7 +161,7 @@ function RedisConfig(n) {
               running = false;
             });
         },
-        () => {}
+        () => { }
       );
     }
     node.status({
@@ -178,20 +181,20 @@ function RedisConfig(n) {
     this.topic = n.topic;
     this.obj = n.obj;
     var node = this;
- 
+
     let client = getConn(this.server, node.server.name);
 
     node.on("close", function (done) {
       node.status({});
-      disconnect( node.server.name);
+      disconnect(node.server.name);
       client = null;
       done();
     });
 
     node.on("input", function (msg, send, done) {
       var topic;
-      send = send || function() { node.send.apply(node,arguments) }
-      done = done || function(err) { if(err)node.error(err, msg); }
+      send = send || function () { node.send.apply(node, arguments) }
+      done = done || function (err) { if (err) node.error(err, msg); }
       if (msg.topic !== undefined && msg.topic !== "") {
         topic = msg.topic;
       } else {
@@ -201,9 +204,9 @@ function RedisConfig(n) {
         done(new Error("Missing topic, please send topic on msg or set Topic on node."));
       } else {
         try {
-          if(node.obj){
+          if (node.obj) {
             client[node.command](topic, JSON.stringify(msg.payload));
-          }else{
+          } else {
             client[node.command](topic, msg.payload);
           }
           done();
@@ -237,8 +240,8 @@ function RedisConfig(n) {
 
     node.on("input", function (msg, send, done) {
       let topic = undefined;
-      send = send || function() { node.send.apply(node,arguments) }
-      done = done || function(err) { if(err)node.error(err, msg); }
+      send = send || function () { node.send.apply(node, arguments) }
+      done = done || function (err) { if (err) node.error(err, msg); }
 
       if (msg.topic !== undefined && msg.topic !== "") {
         topic = msg.topic;
@@ -350,8 +353,8 @@ function RedisConfig(n) {
     }
 
     node.on("input", function (msg, send, done) {
-      send = send || function() { node.send.apply(node,arguments) }
-      done = done || function(err) { if(err)node.error(err, msg); }
+      send = send || function () { node.send.apply(node, arguments) }
+      done = done || function (err) { if (err) node.error(err, msg); }
       if (node.keyval > 0 && !Array.isArray(msg.payload)) {
         throw Error("Payload is not Array");
       }
