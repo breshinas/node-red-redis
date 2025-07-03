@@ -11,6 +11,7 @@ module.exports = function (RED) {
 
     // Default cluster flag from the UI config
     this.cluster = (n.cluster === true || n.cluster === "true");
+    this.isDebug = false;
 
     const self = this;
 
@@ -42,16 +43,23 @@ module.exports = function (RED) {
               if (parsedValue.hasOwnProperty("cluster")) {
                 self.cluster = Boolean(parsedValue.cluster);
               }
+              if (parsedValue.hasOwnProperty("isDebug")) {
+                self.isDebug = Boolean(parsedValue.isDebug);
+              } else {
+                self.isDebug = false;
+              }
             }
 
             self.options = parsedValue;
           } catch (e) {
             self.error("redis-config: Error processing options", e);
             self.options = {};
+            self.isDebug = false;
           }
         } else {
           self.error("redis-config: Error evaluating options", err);
           self.options = {};
+          self.isDebug = false;
         }
       });
     }
@@ -415,20 +423,20 @@ module.exports = function (RED) {
     let options = config.options;
 
     if (!options) {
-      return config.error(
-        "Missing options in the redis config - Are you upgrading from old version?",
-        null
-      );
+      return config.error("Missing options in the redis config - Are you upgrading from old version?", null);
     }
     try {
       if (config.cluster) {
-        connections[id] = new Redis.Cluster(options);
+        // разбираем опции для кластера
+        const startupNodes = options.nodes || [];
+        const clusterOpts  = options.redisOptions || {};
+        connections[id] = new Redis.Cluster(startupNodes, clusterOpts);
       } else {
         connections[id] = new Redis(options);
       }
 
       connections[id].on("error", (e) => {
-        config.error(e, null);
+        config.error(`Redis error [${id}]: ${e.message}`, e);
       });
 
       if (usedConn[id] === undefined) {
@@ -436,7 +444,7 @@ module.exports = function (RED) {
       }
       return connections[id];
     } catch (e) {
-      config.error(e.message, null);
+      config.error(`Failed to create Redis connection: ${e.message}`, e);
     }
   }
 
@@ -447,6 +455,12 @@ module.exports = function (RED) {
     if (connections[id] && usedConn[id] <= 0) {
       connections[id].disconnect();
       delete connections[id];
+    }
+  }
+  
+  function debugLog(node, msg) {
+    if (node.server && node.server.isDebug) {
+      node.debug(msg);
     }
   }
 };
